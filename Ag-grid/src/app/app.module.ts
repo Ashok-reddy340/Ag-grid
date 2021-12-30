@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import 'ag-grid-enterprise';
 
 import { AppComponent } from './app.component';
 import { AgGridModule } from 'ag-grid-angular';

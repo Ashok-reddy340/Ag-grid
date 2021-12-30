@@ -1,5 +1,9 @@
-import { Component } from '@angular/core';
+import { Component , ViewChild} from '@angular/core';
 import { HttpClient } from "@angular/common/http";
+import { AgGridAngular } from 'ag-grid-angular';
+import { Observable } from 'rxjs';
+import { ColDef } from 'ag-grid-community';
+
 
 @Component({
   selector: 'app-root',
@@ -7,17 +11,44 @@ import { HttpClient } from "@angular/common/http";
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = "angular-grid";
+  @ViewChild('agGrid') agGrid!: AgGridAngular;
 
-  columnDefs = [
-    { headerName:"Make" ,field: 'make' , sortable:true, filter: true},
-    { headerName:"Model", field: 'model' ,sortable:true,filter:true},
-    { headerName:"Price", field: 'price',sortable:true,filter:true}
-];
+  defaultColDef: ColDef = {
+      sortable: true,
+      filter: true
+  };
 
-rowData = [
-    { make: 'Toyota', model: 'Celica', price: 35000 },
-    { make: 'Ford', model: 'Mondeo', price: 32000 },
-    { make: 'Porsche', model: 'Boxter', price: 72000 }
-];
+  columnDefs: ColDef[] = [
+      { field: 'make', rowGroup: true },
+      { field: 'price' }
+  ];
+
+  autoGroupColumnDef: ColDef = {
+      headerName: 'Model',
+      field: 'model',
+      cellRenderer: 'agGroupCellRenderer',
+      cellRendererParams: {
+          checkbox: true
+      }
+  };
+
+  rowData: Observable<any[]>;
+
+  constructor(private http: HttpClient) {
+      this.rowData = this.http.get<any[]>('https://www.ag-grid.com/example-assets/row-data.json');
+  }
+
+  getSelectedRows() {
+      const selectedNodes = this.agGrid.api.getSelectedNodes();
+      const selectedData = selectedNodes.map(node => {
+        if (node.groupData) {
+          return { make: node.key, model: 'Group' };
+        }
+        return node.data;
+      });
+      const selectedDataStringPresentation = selectedData.map(node => `${node.make} ${node.model}`).join(', ');
+
+      alert(`Selected nodes: ${selectedDataStringPresentation}`);
+  }
+
 }
